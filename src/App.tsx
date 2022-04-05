@@ -47,7 +47,7 @@ function App() {
           setPokemonInfoInCache(body);
         }
       }).catch((err) => {
-        console.log(err);
+        setErrorMessage({error:err.message});
       }).finally(() => {
         setDisabled(false);
       });
