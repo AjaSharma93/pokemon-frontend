@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  pokemon-frontend:
+    container_name: pokemon-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - '3000:80'
