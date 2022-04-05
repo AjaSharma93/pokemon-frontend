@@ -1,12 +1,11 @@
-import React, { FormEventHandler, useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState } from 'react';
+import { Button, Col, Container, Form, Row } from 'react-bootstrap';
+import './App.css';
 import { ErrorDialog, IErrorResult } from './components/ErrorDialog';
 import { IPokemonResult, PokemonDialog } from './components/PokemonDialog';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 
 // Using client side session storage caching to reduce the number of API calls to the server
 const SESSION_CACHE_ITEMS_NUMBER = 100;
@@ -16,6 +15,7 @@ function App() {
   const [pokemonName, setPokemonName] = useState('');
   const [pokemonInfo, setPokemonInfo] = useState<IPokemonResult | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<IErrorResult | undefined>(undefined);
+  // For any error in the input field for pokemonName
   const [errorText, setErrorText] = useState<string>('');
   const [disabled, setDisabled] = useState(false);
 
@@ -24,13 +24,14 @@ function App() {
     setPokemonInfo(undefined);
     setErrorMessage(undefined);
     setDisabled(true);
+    
     if (pokemonName.length == 0) return setErrorText('Please enter a pokemon name.');
     let pokemonInfo = getPokemonInfoFromCache(pokemonName);
     if (pokemonInfo) {
       setDisabled(false);
       return setPokemonInfo(pokemonInfo);
     }
-
+    
     fetch(`${process.env.REACT_APP_SERVER_URL}/pokemon/${pokemonName}`)
       .then(async (response) => {
         const body = await response.json();
@@ -39,7 +40,7 @@ function App() {
         } else {
           setPokemonInfo(body);
           // Cache the response in sessionStorage
-          setPokemonInfoInCache(pokemonName, body);
+          setPokemonInfoInCache(body);
         }
       }).catch((err) => {
         console.log(err);
@@ -77,18 +78,19 @@ function App() {
   )
 }
 
-function setPokemonInfoInCache(pokemonName: string, body: IPokemonResult) {
+// setter and getter methods for pokemon information
+function setPokemonInfoInCache(body: IPokemonResult) {
   let pokemonInfoStorage = sessionStorage.getItem(SESSION_CACHE_NAME) ?? '[]';
   let pokemonInfo = JSON.parse(pokemonInfoStorage);
   if (pokemonInfo.length === SESSION_CACHE_ITEMS_NUMBER) pokemonInfo.pop();
-  pokemonInfo.push({ pokemonName: pokemonName, pokemonInfo: body });
+  pokemonInfo.push(body);
   sessionStorage.setItem(SESSION_CACHE_NAME, JSON.stringify(pokemonInfo));
 }
 
 function getPokemonInfoFromCache(pokemonName: string) {
   let pokemonInfoStorage = sessionStorage.getItem(SESSION_CACHE_NAME) ?? '[]';
   let pokemonInfo = JSON.parse(pokemonInfoStorage);
-  return (pokemonInfo.filter((p: any) => p.pokemonName === pokemonName)?.[0]?.pokemonInfo) ?? null;
+  return (pokemonInfo.filter((p: any) => p.name === pokemonName)?.[0]) ?? null;
 }
 
 export default App;

@@ -1,11 +1,8 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './App';
-import { unmountComponentAtNode } from "react-dom";
-import { act, isElementOfType } from 'react-dom/test-utils';
-import { Button, Form } from 'react-bootstrap';
 import userEvent from '@testing-library/user-event';
-import { click } from '@testing-library/user-event/dist/click';
+import { unmountComponentAtNode } from "react-dom";
+import { act } from 'react-dom/test-utils';
+import App from './App';
 
 let container: any = null;
 beforeEach(() => {
@@ -33,9 +30,9 @@ it("fails to render a pokemon because of shakespeare rate limit", async () => {
   });
 
   const shakespeareErrorData = {
-    error:"Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 1 hour."
+    error: "Too Many Requests: Rate limit of 5 requests per hour exceeded. Please wait for 1 hour."
   };
-  
+
   const spy = jest.spyOn(global, "fetch").mockImplementation(jest.fn(() => Promise.resolve({
     ok: false,
     json: () => Promise.resolve(shakespeareErrorData)
@@ -91,6 +88,33 @@ it("fails when pokemon name not entered", async () => {
   });
   expect(screen.queryByTestId("error_name")).toBeTruthy();
   expect(screen.getByTestId("error_name").textContent).toBe('Please enter a pokemon name.');
+});
+
+it("pulls pokemon from session cache", async () => {
+  const spy = jest.spyOn(global, "fetch").mockImplementation(jest.fn(() => Promise.resolve({
+    json: () => Promise.resolve({})
+  })) as jest.Mock);
+  sessionStorage.setItem('pokemonInfo', JSON.stringify([
+    {
+      description: "At which hour several of these pokémon gather,  their electricity couldst buildeth and cause lightning storms.",
+      name: "pikachu",
+      sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
+      status: 200
+    }
+  ]));
+
+  act(() => {
+    render(<App />, container);
+    userEvent.type(screen.getByRole('textbox', { name: "Pokemon Search" }), "pikachu");
+    userEvent.click(screen.getByRole('button', { name: /search/i }));
+  });
+  expect(screen.queryByTestId("pokemon_image")).toBeTruthy();
+  expect(screen.queryByTestId("pokemon_name")).toBeTruthy();
+  expect(screen.queryByTestId("pokemon_description")).toBeTruthy();
+  expect((screen.getByTestId("pokemon_image") as HTMLImageElement).src).toBe("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png");
+  expect(screen.getByTestId("pokemon_name").textContent).toBe("pikachu");
+  expect(screen.getByTestId("pokemon_description").textContent).toBe("At which hour several of these pokémon gather,  their electricity couldst buildeth and cause lightning storms.");
+  spy.mockReset();
 });
 
 afterEach(() => {
