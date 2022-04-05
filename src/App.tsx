@@ -18,20 +18,24 @@ function App() {
   // For any error in the input field for pokemonName
   const [errorText, setErrorText] = useState<string>('');
   const [disabled, setDisabled] = useState(false);
+  const [validated, setValidated] = useState(false);
 
   function handlePostForm(event: React.SyntheticEvent) {
     event.preventDefault();
     setPokemonInfo(undefined);
     setErrorMessage(undefined);
+
+    if (pokemonName.length == 0) {
+      setValidated(true);
+      return setErrorText('Please enter a pokemon name.');
+    }
     setDisabled(true);
-    
-    if (pokemonName.length == 0) return setErrorText('Please enter a pokemon name.');
     let pokemonInfo = getPokemonInfoFromCache(pokemonName);
     if (pokemonInfo) {
       setDisabled(false);
       return setPokemonInfo(pokemonInfo);
     }
-    
+
     fetch(`${process.env.REACT_APP_SERVER_URL}/pokemon/${pokemonName}`)
       .then(async (response) => {
         const body = await response.json();
@@ -52,17 +56,19 @@ function App() {
   return (
     <Container>
       <br />
-      <Form onSubmit={handlePostForm}>
+      <Form noValidate validated={validated} onSubmit={handlePostForm}>
         <Row>
-          <Form.Group className="mb-3" controlId="pokemonName">
-            <Col xs="12" sm="6" md="4" lg="4">
+          <Col xs="12" sm="6" md="4" lg="4">
+            <Form.Group className="mb-3" controlId="pokemonName">
               <Form.Label>Pokemon Search</Form.Label>
               <Form.Control type="text" placeholder="Enter the pokemon's name" value={pokemonName} onChange={(e) => {
                 setPokemonName(e.target.value)
-              }} />
-              <Form.Control.Feedback data-testid="error_name" type={(errorText!==null)?"invalid":"valid"}>{errorText}</Form.Control.Feedback>
-            </Col>
-          </Form.Group>
+              }} required/>
+              <Form.Control.Feedback data-testid="error_name" type="invalid">{errorText}</Form.Control.Feedback>
+            </Form.Group>
+          </Col>
+        </Row>
+        <Row>
           <Col xs="12" sm="6" md="4" lg="4">
             <Button id="submitButton" variant="success" type="submit" aria-label="search" disabled={disabled}>
               <FontAwesomeIcon icon={faSearch} /> Search
