@@ -7,6 +7,8 @@ export interface IErrorResult {
 interface IErrorResultProps {
     errorMessage:IErrorResult
 }
+
+/* Errors from server requests are handled here */
 export function ErrorDialog({errorMessage}:IErrorResultProps) {
     return (<>
         <div style={{textAlign:"center"}}>
