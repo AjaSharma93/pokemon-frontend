@@ -117,6 +117,27 @@ it("pulls pokemon from session cache", async () => {
   spy.mockReset();
 });
 
+it("errors out on internet disconnection", async () => {
+  act(() => {
+    render(<App />, container)
+  });
+
+  const spy = jest.spyOn(global, "fetch").mockImplementation(jest.fn(() => Promise.resolve({
+    ok: false,
+    json: () => Promise.reject({message:"Failed to fetch."})
+  })) as jest.Mock);
+
+  await act(async () => {
+    userEvent.type(screen.getByRole('textbox', { name: "Pokemon Search" }), "pikachu");
+    userEvent.click(screen.getByRole('button', { name: /search/i }));
+  })
+
+  expect(screen.queryByTestId("error_message")).toBeTruthy();
+  expect(screen.queryByTestId("error_description")).toBeFalsy();
+  expect(screen.getByTestId("error_message").textContent).toBe("Failed to fetch.");
+  spy.mockRestore();
+});
+
 afterEach(() => {
   // cleanup on exiting
   unmountComponentAtNode(container as Element);
