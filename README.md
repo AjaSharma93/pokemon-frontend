@@ -3,8 +3,15 @@ The frontend application is based on **React 18** and **Typescript 4.6.3**.
 To launch the application, first setup the backend application from [Pokemon Server](https://github.com/AjaSharma93/pokemon_server).
 
 Next, configure the backend server URL in the build args of the file **docker-compose.prod.yml** found in the local directory.
+```
+build:
+  ...
+  args:
+    # SERVER URL to be configured here
+    SERVER_URL: <SERVER URL HERE>
+```
 
-Finally, run the following command to setup the frontend in docker,
+Finally, run the following command to setup the application in docker,
 ```
 docker-compose -f .\docker-compose.prod.yml up -d --build  
 ```
